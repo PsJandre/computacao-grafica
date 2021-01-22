@@ -1,0 +1,1 @@
+A figura escolhida esta dentro da pasta img

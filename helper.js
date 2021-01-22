@@ -1,7 +1,6 @@
 var mMatrix = mat4.create();
 var vMatrix = mat4.create();
 var pMatrix = mat4.create();
-
 var triangleVertexPositionBuffer;
 var squareVertexPositionBuffer;
 $(function () {
