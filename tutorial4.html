@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercicio 1</title>
+    <script type="text/javascript" src="plugins/jquery-3.2.1.js">
+    </script>
+    <script type="text/javascript" src="plugins/gl-matrix-2.4.0.js">
+    </script>
+    <script type="text/javascript" src="plugins/webgl-utils.js">
+    </script>
+    <script type="text/javascript" src="tutorial4.js">
+    </script>
+     <script id="shader-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec4 aVertexColor;
+
+        uniform mat4 uMMatrix;
+        uniform mat4 uVMatrix;
+        uniform mat4 uPMatrix;
+        
+        varying vec4 vColor;
+        void main(void)
+        {
+      gl_Position = uPMatrix * uVMatrix * uMMatrix *
+                vec4(aVertexPosition, 1.0);
+                vColor = aVertexColor;
+        }
+      </script>
+      <script id="shader-fs" type="x-shader/x-fragment">
+        precision mediump float;
+        varying vec4 vColor;
+
+        void main(void)
+        {
+            gl_FragColor = vColor;
+        }
+      </script>  
+</head>
+<body>
+    <canvas id="canvas-webgl" 
+    width="500px" 
+    height="500px" 
+    style="border:none">
+</canvas>
+</body>
+</html>
