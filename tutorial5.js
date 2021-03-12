@@ -1,3 +1,5 @@
+var gl;
+var shaderProgram;
 var mMatrix = mat4.create();
 var vMatrix = mat4.create();
 var pMatrix = mat4.create();
@@ -8,6 +10,7 @@ var predioTextura;
 var xRot = 0;
 var yRot = 0;
 var zRot = 0;
+var ultimo = 0;
 var mMatrixPilha = [];
 
 
@@ -21,46 +24,40 @@ function iniciaWebGL() {
   iniciarBuffers();  // Enviar o triângulo e quadrado na GPU
   iniciarAmbiente(); // Definir background e cor do objeto
   iniciarTextura();
-
- tick();    // Usar os itens anteriores e desenhar
+  tick();    // Usar os itens anteriores e desenhar
 }
 function iniciarGL(canvas) {
-  try {
-    gl = canvas.getContext("webgl") ||
-      canvas.getContext("experimental-webgl");
-    gl.viewportWidth = canvas.width;
-    gl.viewportHeight = canvas.height;
-  }
-  catch (e) {
-    if (!gl)
-      alert("Não pode inicializar WebGL, desculpe");
-  }
+    try {
+        gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        gl.viewportWidth = canvas.width;
+        gl.viewportHeight = canvas.height;
+    } catch (e) {
+        if (!gl) {
+            alert("Não pode inicializar WebGL, desculpe");
+        }
+    }
 }
-var shaderProgram;
 function iniciarShaders() {
-  var vertexShader = getShader(gl, "#shader-vs");
-  var fragmentShader = getShader(gl, "#shader-fs");
+    var vertexShader = getShader(gl, "#shader-vs");
+    var fragmentShader = getShader(gl, "#shader-fs");
 
-  shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
+    shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
 
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    alert("Não pode inicializar shaders");
-  }
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert("Não pode inicializar shaders");
+    }
 
-  gl.useProgram(shaderProgram);
-
-  shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-  gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-
-  shaderProgram.vertexTextureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-gl.enableVertexAttribArray(shaderProgram.vertexTextureCoordAttribute);
-
-shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-shaderProgram.vMatrixUniform = gl.getUniformLocation(shaderProgram, "uVMatrix");
-shaderProgram.mMatrixUniform = gl.getUniformLocation(shaderProgram, "uMMatrix");
+    gl.useProgram(shaderProgram);
+    shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+    gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+    shaderProgram.vertexTextureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+    gl.enableVertexAttribArray(shaderProgram.vertexTextureCoordAttribute);
+    shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+    shaderProgram.vMatrixUniform = gl.getUniformLocation(shaderProgram, "uVMatrix");
+    shaderProgram.mMatrixUniform = gl.getUniformLocation(shaderProgram, "uMMatrix");
 
 }
 
@@ -101,105 +98,110 @@ function getShader(gl, id) {
 }
 function iniciarBuffers() {
   
-cuboVertexPositionBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, cuboVertexPositionBuffer);
-vertices = [
-  // Frente
-  -1.0, -1.0,  1.0,
-   1.0, -1.0,  1.0,
-   1.0,  1.0,  1.0,
-  -1.0,  1.0,  1.0,
 
-  // Trás
-  -1.0, -1.0, -1.0,
-  -1.0,  1.0, -1.0,
-   1.0,  1.0, -1.0,
-   1.0, -1.0, -1.0,
 
-  // Topo
-  -1.0,  1.0, -1.0,
-  -1.0,  1.0,  1.0,
-   1.0,  1.0,  1.0,
-   1.0,  1.0, -1.0,
+    cuboVertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cuboVertexPositionBuffer);
+    vertices = [
+        // Front face
+        -1.0, -1.0, 1.0,
+        1.0, -1.0, 1.0,
+        1.0, 1.0, 1.0,
+        -1.0, 1.0, 1.0,
 
-  // Base
-  -1.0, -1.0, -1.0,
-   1.0, -1.0, -1.0,
-   1.0, -1.0,  1.0,
-  -1.0, -1.0,  1.0,
+        // Back face
+        -1.0, -1.0, -1.0,
+        -1.0, 1.0, -1.0,
+        1.0, 1.0, -1.0,
+        1.0, -1.0, -1.0,
 
-  // Direita
-   1.0, -1.0, -1.0,
-   1.0,  1.0, -1.0,
-   1.0,  1.0,  1.0,
-   1.0, -1.0,  1.0,
+        // Top face
+        -1.0, 1.0, -1.0,
+        -1.0, 1.0, 1.0,
+        1.0, 1.0, 1.0,
+        1.0, 1.0, -1.0,
 
-  // Esquerda
-  -1.0, -1.0, -1.0,
-  -1.0, -1.0,  1.0,
-  -1.0,  1.0,  1.0,
-  -1.0,  1.0, -1.0,
-];
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-cuboVertexPositionBuffer.itemSize = 3;
-cuboVertexPositionBuffer.numItems = 24; // Mudar
+        // Bottom face
+        -1.0, -1.0, -1.0,
+        1.0, -1.0, -1.0,
+        1.0, -1.0, 1.0,
+        -1.0, -1.0, 1.0,
 
-cuboVertexTextureCoordBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, cuboVertexTextureCoordBuffer);
-var coordTextura = [
-  // Frente
-  0.0, 0.0,
-  1.0, 0.0,
-  1.0, 1.0,
-  0.0, 1.0,
+        // Right face
+        1.0, -1.0, -1.0,
+        1.0, 1.0, -1.0,
+        1.0, 1.0, 1.0,
+        1.0, -1.0, 1.0,
 
-  // Trás
-  1.0, 0.0,
-  1.0, 1.0,
-  0.0, 1.0,
-  0.0, 0.0,
+        // Left face
+        -1.0, -1.0, -1.0,
+        -1.0, -1.0, 1.0,
+        -1.0, 1.0, 1.0,
+        -1.0, 1.0, -1.0
+    ];
 
-  // Topo
-  0.0, 1.0,
-  0.0, 0.0,
-  1.0, 0.0,
-  1.0, 1.0,
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    cuboVertexPositionBuffer.itemSize = 3;
+    cuboVertexPositionBuffer.numItems = 4;
 
-  // Base
-  1.0, 1.0,
-  0.0, 1.0,
-  0.0, 0.0,
-  1.0, 0.0,
+    cuboVertexTextureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cuboVertexTextureCoordBuffer);
+    var coordTextura = [
+        // Frente
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+        0.0, 1.0,
 
-  // Direita
-  1.0, 0.0,
-  1.0, 1.0,
-  0.0, 1.0,
-  0.0, 0.0,
+        // Trás
+        1.0, 0.0,
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0,
 
-  // Esquerda
-  0.0, 0.0,
-  1.0, 0.0,
-  1.0, 1.0,
-  0.0, 1.0,
-];
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coordTextura), gl.STATIC_DRAW);
-cuboVertexTextureCoordBuffer.itemSize = 2;
-cuboVertexTextureCoordBuffer.numItems = 24;
+        // Topo
+        0.0, 1.0,
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
 
-cuboVertexIndexBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cuboVertexIndexBuffer);
-var indices = [
-  0, 1, 2,      0, 2, 3,    // Frente
-  4, 5, 6,      4, 6, 7,    // Trás
-  8, 9, 10,     8, 10, 11,  // Topo
-  12, 13, 14,   12, 14, 15, // Base
-  16, 17, 18,   16, 18, 19, // Direita
-  20, 21, 22,   20, 22, 23  // Esquerda
-]
-gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-cuboVertexIndexBuffer.itemSize = 1;
-cuboVertexIndexBuffer.numItems = 36;
+        // Base
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0,
+        1.0, 0.0,
+
+        // Direita
+        1.0, 0.0,
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0,
+
+        // Esquerda
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+        0.0, 1.0,
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coordTextura), gl.STATIC_DRAW);
+    cuboVertexTextureCoordBuffer.itemSize = 2;
+    cuboVertexTextureCoordBuffer.numItems = 24;
+    
+      cuboVertexIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cuboVertexIndexBuffer);
+
+    var indices = [
+        0, 1, 2, 0, 2, 3, // Frente
+        4, 5, 6, 4, 6, 7, // Trás
+        8, 9, 10, 8, 10, 11, // Topo
+        12, 13, 14, 12, 14, 15, // Base
+        16, 17, 18, 16, 18, 19, // Direita
+        20, 21, 22, 20, 22, 23 // Esquerda
+    ];
+
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+    cuboVertexIndexBuffer.itemSize = 1;
+    cuboVertexIndexBuffer.numItems = 36;
 }
 function iniciarAmbiente() {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -236,8 +238,6 @@ function desenharCena() {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cuboVertexIndexBuffer);
     setMatrixUniforms();
     gl.drawElements(gl.TRIANGLES, cuboVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-
-
 }
 
 function setMatrixUniforms() {
@@ -266,11 +266,11 @@ function iniciarTextura()
 
 function tratarTextura(textura) {
     gl.bindTexture(gl.TEXTURE_2D, textura);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textura.image);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textura.image);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 
@@ -280,7 +280,6 @@ function tick()
   desenharCena();
   animar();
 }
-var ultimo = 0;
   function animar()
   {
     var agora = new Date().getTime();
