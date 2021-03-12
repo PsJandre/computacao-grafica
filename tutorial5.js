@@ -206,28 +206,36 @@ function iniciarAmbiente() {
   gl.enable(gl.DEPTH_TEST);
 }
 function desenharCena() {
+   
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
     mat4.identity(mMatrix);
     mat4.identity(vMatrix);
-    
 
- 
-  // Desenhando o Quadrado
-mat4.translate(mMatrix, mMatrix, [0.0, 0.0, -5.0]);
-mat4.rotate(mMatrix, mMatrix, degToRad(xRot), [1, 0, 0]);
-  mat4.rotate(mMatrix, mMatrix, degToRad(yRot), [0, 1, 0]);
-  mat4.rotate(mMatrix, mMatrix, degToRad(zRot), [0, 0, 1]);
-  gl.bindBuffer(gl.ARRAY_BUFFER, cuboVertexPositionBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cuboVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    /*---Retire as chamadas para mPushMatrix e mPopMatrix---*/
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, predioTextura);
-  gl.uniform1i(shaderProgram.samplerUniform,0);
-  
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cuboVertexIndexBuffer);
-  setMatrixUniforms();
-  gl.drawElements(gl.TRIANGLES, cuboVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT,0);
+    /*---Altere a translação---*/
+    mat4.translate(mMatrix, mMatrix, [0.0, 0.0, -5.0]);
+
+    /*---Remova a antiga rotação do cubo---*/
+    /*---Adicione estas 3 linhas---*/
+    mat4.rotate(mMatrix, mMatrix, degToRad(xRot), [1, 0, 0]);
+    mat4.rotate(mMatrix, mMatrix, degToRad(yRot), [0, 1, 0]);
+    mat4.rotate(mMatrix, mMatrix, degToRad(zRot), [0, 0, 1]);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, cuboVertexPositionBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cuboVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    /*---substitua cuboVertexColorBuffer por cuboVertexTextureCoordBuffer---*/
+    /*---substitua vertexColorAttribute por vertexTextureCoordAttribute---*/
+    gl.bindBuffer(gl.ARRAY_BUFFER, cuboVertexTextureCoordBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexTextureCoordAttribute, cuboVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0); /*---Adicione estas 3 linhas antes de drawElements---*/
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, predioTextura);
+    gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cuboVertexIndexBuffer);
+    setMatrixUniforms();
+    gl.drawElements(gl.TRIANGLES, cuboVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
 
 }
@@ -243,16 +251,16 @@ function setMatrixUniforms() {
 
 function iniciarTextura()
 {
-  predioTextura = gl.createTexture();
-  predioTextura.image = new Image();
-  predioTextura.image.crossOrigin= "anonymous";  // ask for CORS permission();
+    predioTextura = gl.createTexture();
+    predioTextura.image = new Image();
+    predioTextura.image.crossOrigin = "anonymous";  // ask for CORS permission();
 
-  predioTextura.image.onload = function()
-  {
-    tratarTextura(predioTextura);
-  }
-  predioTextura.image.src = "predio.jpg";
-  shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+    predioTextura.image.onload = function () {
+        tratarTextura(predioTextura);
+    }
+    predioTextura.image.src = "predio.jpg";
+    shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+
 
 }
 
@@ -263,7 +271,7 @@ function tratarTextura(textura) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.bindTexture(gl.TEXTURE_2D, null);
-  }
+}
 
 
 function tick()
